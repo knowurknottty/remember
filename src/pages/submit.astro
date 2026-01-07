@@ -8,7 +8,7 @@ const category = Astro.url.searchParams.get("category") ?? "Mind Sight";
     <div class="k">Session logging</div>
     <h1>Submit a session</h1>
     <p>
-      This form posts to a Netlify serverless function endpoint (custom /api path).
+      Sessions are saved in your browser's localStorage. No backend needed.
     </p>
     <form id="f" style="display:grid;gap:10px;margin-top:12px">
       <div>
@@ -51,30 +51,36 @@ const category = Astro.url.searchParams.get("category") ?? "Mind Sight";
   <script>
     const form = document.getElementById("f");
     const msg = document.getElementById("msg");
-    form.addEventListener("submit", async (e) => {
+    
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      msg.textContent = "Submitting...";
+      msg.textContent = "Saving...";
+      
       const payload = Object.fromEntries(new FormData(form).entries());
       payload.duration_seconds = payload.duration_seconds ? Number(payload.duration_seconds) : null;
       payload.score = payload.score ? Number(payload.score) : null;
+      
       try {
         payload.vars = payload.vars ? JSON.parse(payload.vars) : null;
       } catch {
         msg.textContent = "Vars must be valid JSON.";
         return;
       }
-      const res = await fetch("/api/log-session", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        msg.textContent = out?.error ? `Error: ${out.error}` : "Error submitting.";
-        return;
-      }
+      
+      // Add timestamp and ID
+      const session = {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        ...payload
+      };
+      
+      // Get existing sessions
+      const sessions = JSON.parse(localStorage.getItem("remember_sessions") || "[]");
+      sessions.push(session);
+      localStorage.setItem("remember_sessions", JSON.stringify(sessions));
+      
       form.reset();
-      msg.textContent = "Saved. View Dashboard.";
+      msg.textContent = "Saved! View on Dashboard.";
     });
   </script>
 </Base>

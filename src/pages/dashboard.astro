@@ -5,24 +5,64 @@ import Base from "../layouts/Base.astro";
   <section class="card">
     <div class="k">Dashboard</div>
     <h1>Recent sessions</h1>
-    <p>Pulls from serverless API. Next step: charts + correlation analysis.</p>
+    <p>Data stored in browser localStorage. Export the JSON below to back up externally.</p>
     <div class="row" style="margin-top:12px">
       <button class="btn primary" id="refresh">Refresh</button>
+      <button class="btn" id="clear">Clear All</button>
+      <button class="btn" id="export">Export JSON</button>
       <a class="btn" href="/submit">Submit new</a>
     </div>
-    <pre id="out" class="mono" style="margin-top:12px;white-space:pre-wrap"></pre>
+    <div id="stats" class="mono" style="margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid var(--line)"></div>
+    <pre id="out" class="mono" style="margin-top:12px;white-space:pre-wrap;max-height:500px;overflow:auto"></pre>
   </section>
   <script>
     const out = document.getElementById("out");
-    const btn = document.getElementById("refresh");
-    async function load(){
-      out.textContent = "Loading...";
-      const res = await fetch("/api/list-sessions");
-      const data = await res.json().catch(()=>null);
-      if(!res.ok){ out.textContent = (data && data.error) ? data.error : "Failed."; return; }
-      out.textContent = JSON.stringify(data, null, 2);
+    const stats = document.getElementById("stats");
+    const refreshBtn = document.getElementById("refresh");
+    const clearBtn = document.getElementById("clear");
+    const exportBtn = document.getElementById("export");
+    
+    function load() {
+      const sessions = JSON.parse(localStorage.getItem("remember_sessions") || "[]");
+      
+      if (sessions.length === 0) {
+        out.textContent = "No sessions yet. Log your first one!";
+        stats.textContent = "Total sessions: 0";
+        return;
+      }
+      
+      // Show stats
+      const categories = {};
+      sessions.forEach(s => {
+        categories[s.category] = (categories[s.category] || 0) + 1;
+      });
+      stats.innerHTML = `Total sessions: ${sessions.length}<br>${Object.entries(categories).map(([cat, count]) => `${cat}: ${count}`).join(" | ")}`;
+      
+      // Show recent sessions (most recent first)
+      const recent = sessions.slice().reverse().slice(0, 20);
+      out.textContent = JSON.stringify(recent, null, 2);
     }
-    btn.addEventListener("click", load);
+    
+    refreshBtn.addEventListener("click", load);
+    
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Are you sure? This will delete all sessions.")) {
+        localStorage.removeItem("remember_sessions");
+        load();
+      }
+    });
+    
+    exportBtn.addEventListener("click", () => {
+      const sessions = localStorage.getItem("remember_sessions") || "[]";
+      const blob = new Blob([sessions], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `remember-sessions-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    
     load();
   </script>
 </Base>

@@ -1,6 +1,6 @@
-# Remember (static + serverless)
+# Remember (client-side)
 
-Astro static site + Netlify Functions + Supabase.
+Astro static site with localStorage for session tracking.
 
 ## Local dev
 
@@ -9,35 +9,17 @@ npm i
 npm run dev
 ```
 
-## Netlify deploy
+## Deploy
 
-- Connect repo
+- Connect repo to Netlify
 - Build: `npm run build`
 - Publish dir: `dist`
-- Env vars:
-  - SUPABASE_URL
-  - SUPABASE_SERVICE_ROLE_KEY
+- No environment variables needed!
 
-## Supabase schema
+## How it works
 
-Run in Supabase SQL editor:
+All session data is stored in the browser's localStorage. No backend, no database, just pure client-side tracking.
 
-```sql
-create table if not exists public.sessions (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now(),
-  category text not null,
-  setup text not null,
-  duration_seconds int,
-  score numeric,
-  vars jsonb,
-  notes text,
-  email text
-);
+## Export your data
 
-create index if not exists sessions_created_at_idx on public.sessions(created_at desc);
-create index if not exists sessions_category_idx on public.sessions(category);
-```
-
-Note: This demo uses the Service Role key inside serverless functions.
-Add anti-spam + auth before going viral.
+Use the Dashboard to view all sessions. You can copy the JSON and save it externally.
