@@ -1,0 +1,31 @@
+---
+import Base from "../layouts/Base.astro";
+
+const protocols = [
+  { cat: "Mind Sight", drill: "Color/shape sorting (blindfolded)", score: "Correct matches / total" },
+  { cat: "Remote Viewing", drill: "4-digit target + feedback", score: "Blind judging rank" },
+  { cat: "Precognition", drill: "Binary / 4-choice target with later reveal", score: "Hit rate %" },
+  { cat: "Psychokinesis", drill: "Micro-influence target (low-friction)", score: "Movement distance" },
+  { cat: "Dowsing", drill: "Hidden target location", score: "Distance error, success rate" }
+];
+---
+<Base title="Protocols — Remember">
+  <section class="card">
+    <div class="k">Training library</div>
+    <h1>Protocols (games-style)</h1>
+    <p>Start with one category for 7 days. Only change one variable per week.</p>
+  </section>
+  <section class="grid2" style="margin-top:14px">
+    {protocols.map(p => (
+      <div class="card">
+        <div class="k">{p.cat}</div>
+        <h2>{p.drill}</h2>
+        <p><span class="mono">Scoring:</span> {p.score}</p>
+        <div class="row" style="margin-top:12px">
+          <a class="btn primary" href={`/submit?category=${encodeURIComponent(p.cat)}`}>Log session</a>
+          <a class="btn" href="/dashboard">See dashboard</a>
+        </div>
+      </div>
+    ))}
+  </section>
+</Base>

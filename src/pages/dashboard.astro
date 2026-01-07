@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Dashboard — Remember">
+  <section class="card">
+    <div class="k">Dashboard</div>
+    <h1>Recent sessions</h1>
+    <p>Pulls from serverless API. Next step: charts + correlation analysis.</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="refresh">Refresh</button>
+      <a class="btn" href="/submit">Submit new</a>
+    </div>
+    <pre id="out" class="mono" style="margin-top:12px;white-space:pre-wrap"></pre>
+  </section>
+  <script>
+    const out = document.getElementById("out");
+    const btn = document.getElementById("refresh");
+    async function load(){
+      out.textContent = "Loading...";
+      const res = await fetch("/api/list-sessions");
+      const data = await res.json().catch(()=>null);
+      if(!res.ok){ out.textContent = (data && data.error) ? data.error : "Failed."; return; }
+      out.textContent = JSON.stringify(data, null, 2);
+    }
+    btn.addEventListener("click", load);
+    load();
+  </script>
+</Base>
